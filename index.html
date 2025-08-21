@@ -1,0 +1,2035 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📋 Data Comparator - JSON , XML , CSV , YAML Analysis Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #ffffff;
+            min-height: 100vh;
+            padding: 20px;
+            color: #37352f;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: #ffffff;
+            border: 1px solid #e1e1e0;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+        }
+
+        .header {
+            background: #ffffff;
+            color: #37352f;
+            padding: 40px 30px 30px;
+            text-align: center;
+            border-bottom: 1px solid #e1e1e0;
+        }
+
+        .header h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: #37352f;
+            letter-spacing: -0.02em;
+        }
+
+        .header p {
+            font-size: 1.05rem;
+            color: #787774;
+            font-weight: 400;
+        }
+
+        .main-content {
+            padding: 30px;
+        }
+
+        .input-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            background: #ffffff;
+            border-radius: 10px;
+            padding: 24px;
+            border: 1px solid #e1e1e0;
+            transition: all 0.2s ease;
+        }
+
+        .input-group:hover {
+            border-color: #d3d1cb;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        }
+
+        .input-group h3 {
+            color: #37352f;
+            margin-bottom: 0;
+            font-size: 1.2rem;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+        }
+
+        .textarea-container {
+            position: relative;
+        }
+
+        .json-textarea {
+            width: 100%;
+            height: 300px;
+            border: 1px solid #e1e1e0;
+            border-radius: 8px;
+            padding: 16px;
+            padding-left: 55px; /* Make room for line numbers */
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+            font-size: 13px;
+            resize: vertical;
+            transition: border-color 0.2s ease;
+            background: #fbfbfa;
+            line-height: 20px; /* Match line numbers */
+            color: #37352f;
+        }
+
+        .json-textarea:focus {
+            outline: none;
+            border-color: #37352f;
+            box-shadow: 0 0 0 2px rgba(55, 53, 47, 0.1);
+            background: #ffffff;
+        }
+
+        .json-textarea.error {
+            border-color: #eb5757;
+            box-shadow: 0 0 0 2px rgba(235, 87, 87, 0.1);
+        }
+
+        .line-numbers {
+            position: absolute;
+            left: 16px;
+            top: 16px;
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 20px; /* Match textarea line height */
+            color: #9b9a97;
+            user-select: none;
+            pointer-events: none;
+            overflow: hidden;
+            height: 268px; /* Match textarea height minus padding */
+            padding-right: 8px;
+            border-right: 1px solid #e1e1e0;
+            text-align: right;
+            width: 30px;
+        }
+        
+        .line-numbers div {
+            height: 20px;
+            line-height: 20px;
+            padding: 0 2px;
+            font-size: 11px;
+        }
+
+        .error-line {
+            background-color: #ffebee !important;
+            color: #c62828 !important;
+            font-weight: bold !important;
+            padding: 0 4px !important;
+            border-radius: 3px;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .controls {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .compare-btn {
+            background: #37352f;
+            color: #ffffff;
+            border: 1px solid #37352f;
+            padding: 16px 32px;
+            font-size: 1.05rem;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .compare-btn:hover {
+            background: #2c2a26;
+            border-color: #2c2a26;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        }
+
+        .compare-btn:active {
+            background: #211f1c;
+            border-color: #211f1c;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .beautify-btn {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            color: #495057;
+            border: 1px solid #e1e1e0;
+            padding: 8px 16px;
+            font-size: 0.8rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            min-width: 80px;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            height: 36px;
+        }
+
+        .beautify-btn:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transition: left 0.5s;
+        }
+
+        .beautify-btn:hover:before {
+            left: 100%;
+        }
+
+        .beautify-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+            border-color: #d3d1cb;
+            background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%);
+            color: #2e7d32;
+        }
+
+        .beautify-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .beautify-btn:disabled {
+            background: #f8f9fa;
+            color: #6c757d;
+            border-color: #dee2e6;
+            cursor: not-allowed;
+            opacity: 0.7;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .input-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .input-controls h3 {
+            margin: 0;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            background: rgba(248, 249, 250, 0.5);
+            border-radius: 8px;
+            padding: 4px;
+        }
+
+        .small-btn {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            color: #495057;
+            border: 1px solid #e1e1e0;
+            padding: 8px 14px;
+            font-size: 0.8rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            min-width: 70px;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            height: 36px;
+        }
+
+        .small-btn:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transition: left 0.5s;
+        }
+
+        .small-btn:hover:before {
+            left: 100%;
+        }
+
+        .small-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+            border-color: #d3d1cb;
+        }
+
+        .small-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .small-btn:disabled {
+            background: #f8f9fa;
+            color: #6c757d;
+            border-color: #dee2e6;
+            cursor: not-allowed;
+            opacity: 0.7;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .copy-btn:hover {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%) !important;
+            border-color: #2196f3 !important;
+            color: #1565c0 !important;
+        }
+
+        .clear-btn:hover {
+            background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%) !important;
+            border-color: #f44336 !important;
+            color: #c62828 !important;
+        }
+
+        .btn-success {
+            background: #d4edda !important;
+            border-color: #c3e6cb !important;
+            color: #155724 !important;
+        }
+
+        .json-textarea.selected-for-copy {
+            border-color: #007bff !important;
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25) !important;
+            background: #f8f9ff !important;
+        }
+
+        .results-section {
+            margin-top: 30px;
+        }
+
+        .summary {
+            background: #fbfbfa;
+            border-radius: 10px;
+            padding: 28px;
+            margin-bottom: 24px;
+            border-left: 3px solid #37352f;
+            border: 1px solid #e1e1e0;
+        }
+
+        .summary h3 {
+            color: #37352f;
+            margin-bottom: 18px;
+            font-size: 1.3rem;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+        }
+
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .stat-item {
+            background: #ffffff;
+            padding: 18px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e1e1e0;
+        }
+
+        .stat-number {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #37352f;
+            letter-spacing: -0.02em;
+        }
+
+        .stat-label {
+            color: #787774;
+            margin-top: 6px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: #ffffff;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e1e1e0;
+        }
+
+        .comparison-table th {
+            background: #f8f9fa;
+            color: #37352f;
+            padding: 16px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.95rem;
+            border-bottom: 1px solid #e1e1e0;
+        }
+
+        .comparison-table td {
+            padding: 14px 16px;
+            border-bottom: 1px solid #f1f1ef;
+            vertical-align: top;
+            color: #37352f;
+        }
+
+        .comparison-table tbody tr:hover {
+            background: #fbfbfa;
+        }
+
+        .field-path {
+            font-family: 'Courier New', monospace;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .json-value {
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            word-break: break-word;
+            max-width: 300px;
+        }
+
+        .status-match {
+            color: #28a745;
+            font-weight: bold;
+        }
+        
+        .status-xml-match {
+            color: #17a2b8;
+            font-weight: bold;
+            background: #e6f7ff;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        .status-different {
+            color: #dc3545;
+            font-weight: bold;
+        }
+
+        .status-different-values {
+            color: #ff6b35;
+            font-weight: bold;
+            background: #fff2e6;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        .status-missing {
+            color: #dc3545;
+            font-weight: bold;
+            background: #ffebee;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        .missing-value {
+            color: #dc3545;
+            font-style: italic;
+        }
+
+        .error-message {
+            background: #fff5f5;
+            border: 2px solid #feb2b2;
+            color: #c53030;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #667eea;
+        }
+
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            margin-left: 10px;
+            border: 3px solid #667eea;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .details-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-top: 25px;
+        }
+
+        .details-panel {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            border: 1px solid #dee2e6;
+        }
+
+        .details-panel h4 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .field-list {
+            list-style: none;
+        }
+
+        .field-list li {
+            padding: 5px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+
+        .match-item {
+            color: #28a745;
+        }
+
+        .diff-item {
+            color: #dc3545;
+        }
+
+        @media (max-width: 768px) {
+            .input-section {
+                grid-template-columns: 1fr;
+            }
+            
+            .details-section {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .main-content {
+                padding: 20px;
+            }
+            
+            .input-controls {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .button-group {
+                gap: 4px;
+                padding: 3px;
+            }
+            
+            .small-btn {
+                font-size: 0.75rem;
+                padding: 6px 10px;
+                min-width: 60px;
+                height: 32px;
+            }
+
+            .beautify-btn {
+                font-size: 0.75rem;
+                padding: 6px 12px;
+                min-width: 65px;
+                height: 32px;
+            }
+        }
+    </style>
+    <!-- Add YAML parsing library -->
+    <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📋 Data Comparator</h1>
+            <p>Compare JSON, XML, CSV, or YAML data side-by-side with detailed analysis and formatting</p>
+        </div>
+        
+        <div class="main-content">
+            <div class="input-section">
+                <div class="input-group">
+                    <div class="input-controls">
+                        <h3>Data Source 1</h3>
+                        <div class="button-group">
+                            <button class="beautify-btn" onclick="beautifyData('requestJson', 'requestLineNumbers')" title="Format and beautify data">
+                            ✨ Format
+                        </button>
+                            <button class="small-btn copy-btn" onclick="copyToClipboard('requestJson')" title="Copy content">
+                                📄 Copy
+                            </button>
+                            <button class="small-btn clear-btn" onclick="clearTextarea('requestJson', 'requestLineNumbers')" title="Clear content">
+                                ✕ Clear
+                        </button>
+                        </div>
+                    </div>
+                    <div class="textarea-container">
+                        <div id="requestLineNumbers" class="line-numbers"></div>
+                        <textarea 
+                            id="requestJson" 
+                            class="json-textarea" 
+                            placeholder='Paste your first data source here (JSON, XML, CSV, YAML, or text)...
+
+Examples:
+• JSON: {"user_id": 123, "name": "John Doe"}
+• XML: <user><id>123</id><name>John Doe</name></user>
+• YAML: user_id: 123\n  name: John Doe
+• CSV: id,name,email\n123,John Doe,john@example.com
+• Any structured data format'></textarea>
+                    </div>
+                </div>
+                
+                <div class="input-group">
+                    <div class="input-controls">
+                        <h3>Data Source 2</h3>
+                        <div class="button-group">
+                            <button class="beautify-btn" onclick="beautifyData('responseJson', 'responseLineNumbers')" title="Format and beautify data">
+                            ✨ Format
+                        </button>
+                            <button class="small-btn copy-btn" onclick="copyToClipboard('responseJson')" title="Copy content">
+                                📄 Copy
+                            </button>
+                            <button class="small-btn clear-btn" onclick="clearTextarea('responseJson', 'responseLineNumbers')" title="Clear content">
+                                ✕ Clear
+                        </button>
+                        </div>
+                    </div>
+                    <div class="textarea-container">
+                        <div id="responseLineNumbers" class="line-numbers"></div>
+                        <textarea 
+                            id="responseJson" 
+                            class="json-textarea" 
+                            placeholder='Paste your second data source here (JSON, XML, CSV, YAML, or text)...
+
+Examples:
+• JSON: {"user_id": 123, "name": "John Doe", "created_at": "2024-01-15"}
+• XML: <user><id>123</id><name>John Doe</name><created_at>2024-01-15</created_at></user>
+• YAML: user_id: 123\n  name: John Doe\n  created_at: 2024-01-15
+• CSV: id,name,email,created_at\n123,John Doe,john@example.com,2024-01-15
+• Any structured format'></textarea>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="controls">
+                <button class="compare-btn" onclick="compareData()">
+                    Compare Data
+                </button>
+            </div>
+            
+            <div id="results" class="results-section" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        // Data Beautify/Format function for JSON and XML
+        function beautifyData(textareaId, lineNumbersId) {
+            const textarea = document.getElementById(textareaId);
+            const lineNumbers = document.getElementById(lineNumbersId);
+            
+            if (!textarea) return;
+            
+            const jsonText = textarea.value.trim();
+            
+            if (!jsonText) {
+                alert('Please enter some data content first.');
+                return;
+            }
+            
+            try {
+                let beautifiedContent;
+                
+                // Try to detect and parse the format
+                const trimmed = jsonText.trim();
+                
+                if (trimmed.startsWith('<')) {
+                    // XML format
+                    beautifiedContent = beautifyXML(jsonText);
+                } else if (isYAMLFormat(trimmed)) {
+                    // YAML format
+                    const parsed = parseYAMLToObject(jsonText);
+                    beautifiedContent = jsyaml.dump(parsed, { indent: 2, lineWidth: 120 });
+                } else if (isCSVFormat(trimmed)) {
+                    // CSV format - just clean up spacing
+                    const lines = jsonText.split('\n');
+                    beautifiedContent = lines.map(line => {
+                        return line.split(',').map(cell => cell.trim()).join(', ');
+                    }).join('\n');
+                } else {
+                    // JSON format
+                const parsedJSON = JSON.parse(jsonText);
+                    beautifiedContent = JSON.stringify(parsedJSON, null, 2);
+                }
+                
+                // Update textarea with beautified content
+                textarea.value = beautifiedContent;
+                
+                // Clear any previous error highlights
+                clearErrorHighlight(textareaId, lineNumbersId);
+                
+                // Update line numbers
+                updateLineNumbers(textareaId, lineNumbersId);
+                
+                // Show success feedback (optional)
+                const beautifyBtn = event.target;
+                const originalText = beautifyBtn.innerHTML;
+                beautifyBtn.innerHTML = '✅ Formatted!';
+                beautifyBtn.disabled = true;
+                
+                setTimeout(() => {
+                    beautifyBtn.innerHTML = originalText;
+                    beautifyBtn.disabled = false;
+                }, 1500);
+                
+            } catch (error) {
+                // Handle JSON parsing errors
+                const result = parseJSONWithLineNumbers(jsonText);
+                if (!result.success && result.error) {
+                    highlightErrorLine(textareaId, lineNumbersId, result.error.line);
+                }
+                
+                alert(`Invalid data format: ${error.message}\n\nPlease check your JSON, XML, CSV, or YAML syntax and try again.`);
+            }
+        }
+        
+        // Copy to clipboard function
+        function copyToClipboard(textareaId) {
+            const textarea = document.getElementById(textareaId);
+            
+            if (!textarea) return;
+            
+            const content = textarea.value.trim();
+            
+            if (!content) {
+                alert('Nothing to copy! Please enter some content first.');
+                return;
+            }
+            
+            // Get the button that triggered this
+            const button = event ? event.target : null;
+            
+            // Method 1: Try modern clipboard API first
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(content)
+                    .then(() => {
+                        showButtonFeedback(button, '✓ Copied!', 'copy-btn');
+                    })
+                    .catch(() => {
+                        // Fallback to legacy method
+                        tryLegacyCopy(content, button, textarea);
+                    });
+            } else {
+                // Fallback to legacy method
+                tryLegacyCopy(content, button, textarea);
+            }
+        }
+        
+        // Legacy copy method with better implementation
+        function tryLegacyCopy(content, button, originalTextarea) {
+            try {
+                // Create a temporary textarea
+                const tempTextarea = document.createElement('textarea');
+                tempTextarea.value = content;
+                
+                // Style it to be invisible but functional
+                tempTextarea.style.position = 'absolute';
+                tempTextarea.style.left = '-9999px';
+                tempTextarea.style.top = '-9999px';
+                tempTextarea.style.opacity = '0';
+                tempTextarea.setAttribute('readonly', '');
+                
+                // Add to DOM
+                document.body.appendChild(tempTextarea);
+                
+                // Select the text
+                tempTextarea.focus();
+                tempTextarea.select();
+                tempTextarea.setSelectionRange(0, tempTextarea.value.length);
+                
+                // Try to copy using execCommand
+                let successful = false;
+                try {
+                    successful = document.execCommand('copy');
+                } catch (err) {
+                    console.log('execCommand failed:', err);
+                }
+                
+                // Clean up
+                document.body.removeChild(tempTextarea);
+                
+                if (successful) {
+                    showButtonFeedback(button, '✓ Copied!', 'copy-btn');
+                } else {
+                    // Final fallback - select original textarea
+                    fallbackToSelection(originalTextarea, button);
+                }
+                
+            } catch (err) {
+                console.log('Legacy copy method failed:', err);
+                // Final fallback - select original textarea
+                fallbackToSelection(originalTextarea, button);
+            }
+        }
+        
+        // Final fallback: select text in original textarea
+        function fallbackToSelection(textarea, button) {
+            try {
+                // Focus and select the original textarea
+                textarea.focus();
+                textarea.select();
+                textarea.setSelectionRange(0, textarea.value.length);
+                
+                // Add visual indicator
+                textarea.style.backgroundColor = '#e3f2fd';
+                textarea.style.borderColor = '#2196f3';
+                
+                // Show instructions
+                showButtonFeedback(button, '📋 Text Selected', 'copy-btn', 3000);
+                
+                // Remove visual indicator after delay
+                setTimeout(() => {
+                    textarea.style.backgroundColor = '';
+                    textarea.style.borderColor = '';
+                }, 3000);
+                
+                // Show alert with instructions
+                setTimeout(() => {
+                    alert('The text has been selected for you. Please press:\n• Ctrl+C (Windows/Linux)\n• Cmd+C (Mac)\nto copy the text.');
+                }, 200);
+                
+            } catch (err) {
+                console.error('All copy methods failed:', err);
+                alert('Copy function is not available in your browser. Please manually select all text (Ctrl+A) and copy (Ctrl+C).');
+            }
+        }
+        
+        // Clear textarea function
+        function clearTextarea(textareaId, lineNumbersId) {
+            const textarea = document.getElementById(textareaId);
+            const lineNumbers = document.getElementById(lineNumbersId);
+            
+            if (!textarea) return;
+            
+            // Clear the content
+            textarea.value = '';
+            
+            // Remove placeholder text
+            textarea.placeholder = '';
+            
+            // Clear error highlights
+            clearErrorHighlight(textareaId, lineNumbersId);
+            
+            // Update line numbers
+            updateLineNumbers(textareaId, lineNumbersId);
+            
+            // Show feedback
+            showButtonFeedback(event.target, '✓ Cleared!', 'clear-btn');
+            
+            // Focus back to textarea
+            textarea.focus();
+        }
+        
+        // Show button feedback
+        function showButtonFeedback(button, message, originalClass, duration = 1500) {
+            if (!button) return;
+            
+            const originalText = button.innerHTML;
+            button.innerHTML = message;
+            button.disabled = true;
+            button.classList.add('btn-success');
+            
+            setTimeout(() => {
+                button.innerHTML = originalText;
+                button.disabled = false;
+                button.classList.remove('btn-success');
+            }, duration);
+        }
+        
+        // XML Beautify function
+        function beautifyXML(xmlText) {
+            try {
+                // Parse XML
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(xmlText, "text/xml");
+                
+                // Check for parsing errors
+                const parseError = xmlDoc.getElementsByTagName('parsererror')[0];
+                if (parseError) {
+                    throw new Error('Invalid XML: ' + parseError.textContent);
+                }
+                
+                // Beautify XML
+                const serializer = new XMLSerializer();
+                const xmlString = serializer.serializeToString(xmlDoc);
+                
+                // Format with indentation
+                return formatXMLString(xmlString);
+            } catch (error) {
+                throw new Error('XML parsing failed: ' + error.message);
+            }
+        }
+        
+        function formatXMLString(xml) {
+            const PADDING = ' '.repeat(2); // 2 spaces per indent
+            const reg = /(>)(<)(\/*)([^\\s<>]*)/g;
+            let formatted = xml.replace(reg, '$1\n$2$3$4');
+            let pad = 0;
+            
+            return formatted.split('\n').map((line) => {
+                let indent = 0;
+                if (line.match(/.+<\/\w[^>]*>$/)) {
+                    indent = 0;
+                } else if (line.match(/^<\/\w/) && pad > 0) {
+                    pad -= 1;
+                } else if (line.match(/^<\w[^>]*[^\/]>.*$/)) {
+                    indent = 1;
+                } else {
+                    indent = 0;
+                }
+                
+                const padding = PADDING.repeat(pad);
+                pad += indent;
+                return padding + line;
+            }).join('\n').replace(/^\s*\n/gm, '');
+        }
+        
+        // XML to Object parsing function
+        function parseXMLToObject(xmlString) {
+            try {
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(xmlString, "text/xml");
+                
+                // Check for parsing errors
+                const parseError = xmlDoc.getElementsByTagName('parsererror')[0];
+                if (parseError) {
+                    throw new Error('Invalid XML: ' + parseError.textContent);
+                }
+                
+                // Convert XML to object
+                return xmlToObject(xmlDoc.documentElement);
+            } catch (error) {
+                throw new Error('XML parsing failed: ' + error.message);
+            }
+        }
+        
+        function xmlToObject(xmlNode) {
+            const result = {};
+            
+            // Handle attributes - map them without @ prefix for more intuitive names
+            if (xmlNode.attributes && xmlNode.attributes.length > 0) {
+                for (let i = 0; i < xmlNode.attributes.length; i++) {
+                    const attr = xmlNode.attributes[i];
+                    result[attr.name] = attr.value;  // Remove @ prefix for natural mapping
+                }
+            }
+            
+            // Handle child nodes
+            let hasElementChildren = false;
+            let textContent = '';
+            
+            if (xmlNode.hasChildNodes()) {
+                for (let i = 0; i < xmlNode.childNodes.length; i++) {
+                    const child = xmlNode.childNodes[i];
+                    
+                    if (child.nodeType === Node.TEXT_NODE) {
+                        const text = child.textContent.trim();
+                        if (text) {
+                            textContent += text;
+                        }
+                    } else if (child.nodeType === Node.ELEMENT_NODE) {
+                        hasElementChildren = true;
+                        const childName = child.nodeName;
+                        const childObj = xmlToObject(child);
+                        
+                        if (result[childName]) {
+                            // If key already exists, make it an array
+                            if (!Array.isArray(result[childName])) {
+                                result[childName] = [result[childName]];
+                            }
+                            result[childName].push(childObj);
+                        } else {
+                            result[childName] = childObj;
+                        }
+                    }
+                }
+            }
+            
+            // Handle text content based on context
+            if (textContent && !hasElementChildren) {
+                // Always map text content to "value" field for consistency
+                result['value'] = textContent;
+            }
+            
+            return result;
+        }
+        
+        // YAML Format Detection and Parsing
+        function isYAMLFormat(text) {
+            // YAML format indicators
+            if (text.startsWith('---') || text.startsWith('...')) {
+                return true;
+            }
+            
+            // Look for YAML key-value patterns
+            const yamlPatterns = [
+                /^[a-zA-Z_][a-zA-Z0-9_]*:\s*.+$/m,  // key: value
+                /^\s*-\s+[a-zA-Z_]/m,                // - list item
+                /^\s+[a-zA-Z_][a-zA-Z0-9_]*:/m      // indented key:
+            ];
+            
+            // Check if it doesn't look like JSON or XML
+            const notJSON = !text.trim().startsWith('{') && !text.trim().startsWith('[');
+            const notXML = !text.trim().startsWith('<');
+            
+            // If it's not JSON/XML and matches YAML patterns, it's likely YAML
+            return notJSON && notXML && yamlPatterns.some(pattern => pattern.test(text));
+        }
+        
+        function parseYAMLToObject(yamlString) {
+            try {
+                // Use js-yaml library to parse
+                const data = jsyaml.load(yamlString);
+                return data;
+            } catch (error) {
+                throw new Error('YAML parsing failed: ' + error.message);
+            }
+        }
+        
+        // CSV Format Detection and Parsing  
+        function isCSVFormat(text) {
+            const trimmed = text.trim();
+            const lines = trimmed.split('\n');
+            
+            if (lines.length < 1) return false;
+            
+            // First check: must have commas
+            const firstLine = lines[0].trim();
+            if (!firstLine.includes(',')) return false;
+            
+            // If it looks like JSON or XML or YAML, it's not CSV
+            if (trimmed.startsWith('{') || trimmed.startsWith('[') || trimmed.startsWith('<')) {
+                return false;
+            }
+            
+            // YAML usually has colons with spaces after them, CSV doesn't typically
+            if (trimmed.includes(': ') && !trimmed.includes('",')) {
+                return false;
+            }
+            
+            // Count commas in first line
+            const commaCount = (firstLine.match(/,/g) || []).length;
+            
+            // Must have at least one comma
+            if (commaCount === 0) return false;
+            
+            console.log('CSV Detection:', {
+                hasCommas: firstLine.includes(','),
+                commaCount: commaCount,
+                lineCount: lines.length,
+                firstLine: firstLine,
+                isCSV: true
+            });
+            
+            // If only one line with commas, likely CSV
+            if (lines.length === 1) return commaCount > 0;
+            
+            // Check if most lines have similar comma counts (more forgiving)
+            let validLines = 0;
+            const maxLinesToCheck = Math.min(lines.length, 5);
+            
+            for (let i = 0; i < maxLinesToCheck; i++) {
+                const line = lines[i].trim();
+                if (line.length === 0) continue; // Skip empty lines
+                
+                const lineCommas = (line.match(/,/g) || []).length;
+                // Allow more variation in comma counts (±2 instead of ±1)
+                if (Math.abs(lineCommas - commaCount) <= 2) {
+                    validLines++;
+                }
+            }
+            
+            // Require at least 60% of lines to match (instead of 70%)
+            const threshold = maxLinesToCheck * 0.6;
+            return validLines >= threshold;
+        }
+        
+        function parseCSVToObject(csvString) {
+            try {
+                const lines = csvString.trim().split('\n');
+                if (lines.length === 0) throw new Error('Empty CSV data');
+                
+                // Parse CSV (simple implementation)
+                function parseCSVLine(line) {
+                    const result = [];
+                    let current = '';
+                    let inQuotes = false;
+                    
+                    for (let i = 0; i < line.length; i++) {
+                        const char = line[i];
+                        
+                        if (char === '"') {
+                            inQuotes = !inQuotes;
+                        } else if (char === ',' && !inQuotes) {
+                            result.push(current.trim());
+                            current = '';
+                        } else {
+                            current += char;
+                        }
+                    }
+                    result.push(current.trim());
+                    return result;
+                }
+                
+                // Parse header and data rows
+                const headers = parseCSVLine(lines[0]);
+                const data = [];
+                
+                for (let i = 1; i < lines.length; i++) {
+                    if (lines[i].trim()) {
+                        const row = parseCSVLine(lines[i]);
+                        const rowObject = {};
+                        
+                        headers.forEach((header, index) => {
+                            rowObject[header.replace(/"/g, '')] = row[index] ? row[index].replace(/"/g, '') : '';
+                        });
+                        
+                        data.push(rowObject);
+                    }
+                }
+                
+                // Handle multiple rows by creating a flattened structure
+                if (data.length === 1) {
+                    return data[0];
+                } else {
+                    // Create a flattened object with indexed keys for multiple rows
+                    const flattened = {};
+                    data.forEach((row, index) => {
+                        Object.keys(row).forEach(key => {
+                            flattened[`row_${index + 1}_${key}`] = row[key];
+                        });
+                    });
+                    
+                    // Also add summary information
+                    flattened['total_rows'] = data.length;
+                    flattened['headers'] = headers.join(',');
+                    
+                    return flattened;
+                }
+                
+            } catch (error) {
+                throw new Error('CSV parsing failed: ' + error.message);
+            }
+        }
+        
+        // Enhanced JSON parsing to be more flexible with text input
+        function tryParseFlexibleJSON(jsonText) {
+            // First, try to parse as-is
+            try {
+                return JSON.parse(jsonText);
+            } catch (e) {
+                // If that fails, try some common fixes for malformed JSON
+                let cleanedText = jsonText.trim();
+                
+                // Try to fix common issues:
+                // 1. Remove trailing commas
+                cleanedText = cleanedText.replace(/,(\s*[}\]])/g, '$1');
+                
+                // 2. Fix single quotes to double quotes (basic approach)
+                cleanedText = cleanedText.replace(/'/g, '"');
+                
+                // 3. Try to handle unquoted keys (basic regex - not perfect but helps with simple cases)
+                cleanedText = cleanedText.replace(/([{,]\s*)([a-zA-Z_$][a-zA-Z0-9_$]*)\s*:/g, '$1"$2":');
+                
+                // 4. Handle missing quotes around string values (very basic - only for simple cases)
+                cleanedText = cleanedText.replace(/:(\s*)([a-zA-Z][a-zA-Z0-9\s]*[a-zA-Z0-9])(\s*[,}\]])/g, ':"$2"$3');
+                
+                // Try parsing the cleaned version
+                try {
+                    return JSON.parse(cleanedText);
+                } catch (e2) {
+                    // If still failing, try one more approach: see if it's actually just a string value
+                    try {
+                        // Try wrapping the entire content as a string value
+                        return JSON.parse(`"${cleanedText.replace(/"/g, '\\"')}"`);
+                    } catch (e3) {
+                        // If all approaches fail, throw the original error
+                        throw e;
+                    }
+                }
+            }
+        }
+
+        // Line numbering and error highlighting functions
+        function updateLineNumbers(textareaId, lineNumbersId) {
+            const textarea = document.getElementById(textareaId);
+            const lineNumbers = document.getElementById(lineNumbersId);
+            
+            if (!textarea || !lineNumbers) return;
+            
+            const lines = textarea.value.split('\n');
+            const lineCount = Math.max(lines.length, 1);
+            
+            let lineNumbersHtml = '';
+            for (let i = 1; i <= lineCount; i++) {
+                lineNumbersHtml += `<div>${i}</div>`;
+            }
+            lineNumbers.innerHTML = lineNumbersHtml;
+        }
+        
+        function highlightErrorLine(textareaId, lineNumbersId, errorLine) {
+            const textarea = document.getElementById(textareaId);
+            const lineNumbers = document.getElementById(lineNumbersId);
+            
+            if (!textarea || !lineNumbers) return;
+            
+            // Add error class to textarea
+            textarea.classList.add('error');
+            
+            // Update line numbers with error highlighting
+            const lines = textarea.value.split('\n');
+            const lineCount = Math.max(lines.length, 1);
+            
+            let lineNumbersHtml = '';
+            for (let i = 1; i <= lineCount; i++) {
+                if (i === errorLine) {
+                    lineNumbersHtml += `<div class="error-line">${i}</div>`;
+                } else {
+                    lineNumbersHtml += `<div>${i}</div>`;
+                }
+            }
+            lineNumbers.innerHTML = lineNumbersHtml;
+        }
+        
+        function clearErrorHighlight(textareaId, lineNumbersId) {
+            const textarea = document.getElementById(textareaId);
+            const lineNumbers = document.getElementById(lineNumbersId);
+            
+            if (!textarea || !lineNumbers) return;
+            
+            // Remove error class
+            textarea.classList.remove('error');
+            
+            // Update line numbers without highlighting
+            updateLineNumbers(textareaId, lineNumbersId);
+        }
+        
+        function parseDataWithLineNumbers(dataString) {
+            // First try to detect format and parse
+            try {
+                let data;
+                const trimmed = dataString.trim();
+                
+                console.log('Format Detection Debug:', {
+                    startsWithXML: trimmed.startsWith('<'),
+                    isYAML: isYAMLFormat(trimmed),
+                    isCSV: isCSVFormat(trimmed),
+                    firstLine: trimmed.split('\n')[0],
+                    length: trimmed.length
+                });
+                
+                if (trimmed.startsWith('<')) {
+                    // XML format
+                    console.log('Detected format: XML');
+                    data = parseXMLToObject(dataString);
+                } else if (isYAMLFormat(trimmed)) {
+                    // YAML format
+                    console.log('Detected format: YAML');
+                    data = parseYAMLToObject(dataString);
+                } else if (isCSVFormat(trimmed)) {
+                    // CSV format
+                    console.log('Detected format: CSV');
+                    data = parseCSVToObject(dataString);
+                } else {
+                    // JSON format (default)
+                    console.log('Detected format: JSON (default)');
+                    data = tryParseFlexibleJSON(dataString);
+                }
+                return {
+                    success: true,
+                    data: data,
+                    error: null
+                };
+            } catch (error) {
+                let lineNumber = 1;
+                let columnNumber = 1;
+                const errorMessage = error.message;
+                
+                console.log('JSON Error:', errorMessage); // Debug log
+                
+                // Extract line and column from different error message formats
+                // Chrome/Firefox: "Unexpected token } in JSON at position 123"
+                // Safari: "JSON Parse error: Unexpected identifier "test""
+                // Edge: "Unexpected token } in JSON at position 123"
+                
+                // Try to extract position first
+                const positionMatch = errorMessage.match(/position (\d+)/i);
+                if (positionMatch) {
+                    const position = parseInt(positionMatch[1]);
+                    const textUpToError = dataString.substring(0, position);
+                    const lines = textUpToError.split('\n');
+                    lineNumber = lines.length;
+                    columnNumber = lines[lines.length - 1].length + 1;
+                } else {
+                    // Try to extract line number directly
+                    const lineMatch = errorMessage.match(/line (\d+)/i);
+                    if (lineMatch) {
+                        lineNumber = parseInt(lineMatch[1]);
+                        
+                        const columnMatch = errorMessage.match(/column (\d+)/i);
+                        if (columnMatch) {
+                            columnNumber = parseInt(columnMatch[1]);
+                        }
+                    } else {
+                        // Fallback: manually find the error by trying to parse progressively
+                        try {
+                            const lines = dataString.split('\n');
+                            let charCount = 0;
+                            
+                            for (let i = 0; i < lines.length; i++) {
+                                const lineContent = lines[i] + (i < lines.length - 1 ? '\n' : '');
+                                
+                                try {
+                                    if (dataString.trim().startsWith('<')) {
+                                        // For XML, this is more complex, so we'll use a simpler approach
+                                        lineNumber = i + 1;
+                                        break;
+                                    } else {
+                                        JSON.parse(dataString.substring(0, charCount + lineContent.length));
+                                    charCount += lineContent.length;
+                                    }
+                                } catch (e) {
+                                    lineNumber = i + 1;
+                                    // Try to find column within this line
+                                    for (let j = 1; j <= lineContent.length; j++) {
+                                        try {
+                                            if (!dataString.trim().startsWith('<')) {
+                                                JSON.parse(dataString.substring(0, charCount + j));
+                                            }
+                                        } catch (ee) {
+                                            columnNumber = j;
+                                            break;
+                                        }
+                                    }
+                                    break;
+                                }
+                            }
+                        } catch (e) {
+                            console.log('Fallback parsing failed:', e);
+                        }
+                    }
+                }
+                
+                console.log(`Error detected at line ${lineNumber}, column ${columnNumber}`); // Debug log
+                
+                return {
+                    success: false,
+                    data: null,
+                    error: {
+                        message: errorMessage,
+                        line: lineNumber,
+                        column: columnNumber
+                    }
+                };
+            }
+        }
+        
+        function flattenData(obj, prefix = '', separator = '.') {
+            const flattened = {};
+            
+            for (const key in obj) {
+                if (obj.hasOwnProperty(key)) {
+                    const newKey = prefix ? `${prefix}${separator}${key}` : key;
+                    const value = obj[key];
+                    
+                    if (value === null || value === undefined) {
+                        flattened[newKey] = value;
+                    } else if (Array.isArray(value)) {
+                        value.forEach((item, index) => {
+                            const arrayKey = `${newKey}[${index}]`;
+                            if (typeof item === 'object' && item !== null) {
+                        Object.assign(flattened, flattenData(item, arrayKey, separator));
+                            } else {
+                                flattened[arrayKey] = item;
+                            }
+                        });
+                    } else if (typeof value === 'object') {
+                    Object.assign(flattened, flattenData(value, newKey, separator));
+                    } else {
+                        flattened[newKey] = value;
+                    }
+                }
+            }
+            
+            return flattened;
+        }
+        
+        function getLeafName(fieldPath) {
+            // Handle array items specially - preserve index for individual comparison
+            if (/\[\d+\]$/.test(fieldPath)) {
+                // This is an array item, keep the index for individual comparison
+                const indexMatch = fieldPath.match(/\[(\d+)\]$/);
+                const index = indexMatch ? indexMatch[1] : '0';
+                
+                let cleanPath = fieldPath.replace(/\[\d+\]$/, '');
+                if (cleanPath.includes('.')) {
+                    const arrayName = cleanPath.split('.').pop();
+                    return `${arrayName}[${index}]`;
+                } else {
+                    return `${cleanPath || 'array'}[${index}]`;
+                }
+            }
+            
+            // No special XML handling needed since we now use natural field names
+            
+            // Remove array indices from middle of path
+            let cleanPath = fieldPath.replace(/\[\d+\]/g, '');
+            
+            // Get field name with immediate parent (skip first parent)
+            if (cleanPath.includes('.')) {
+                const parts = cleanPath.split('.');
+                if (parts.length >= 3) {
+                    // Skip first parent, return immediate parent + field name
+                    return parts.slice(-2).join('.');
+                } else if (parts.length === 2) {
+                    // Return parent + field name
+                    return parts.join('.');
+                } else {
+                    return parts[0];
+                }
+            }
+            return cleanPath;
+        }
+        
+        function compareData() {
+            const requestInput = document.getElementById('requestJson').value.trim();
+            const responseInput = document.getElementById('responseJson').value.trim();
+            const resultsDiv = document.getElementById('results');
+            
+            // Clear previous error highlights
+            clearErrorHighlight('requestJson', 'requestLineNumbers');
+            clearErrorHighlight('responseJson', 'responseLineNumbers');
+            
+            // Show loading
+            resultsDiv.style.display = 'block';
+            resultsDiv.innerHTML = '<div class="loading">Processing data comparison...</div>';
+            
+            setTimeout(() => {
+                try {
+                    // Validate and parse data
+                    if (!requestInput || !responseInput) {
+                        throw new Error('Please provide both data sources for comparison');
+                    }
+                    
+                    // Parse first data source with error detection
+                    const requestResult = parseDataWithLineNumbers(requestInput);
+                    if (!requestResult.success) {
+                        highlightErrorLine('requestJson', 'requestLineNumbers', requestResult.error.line);
+                        throw new Error(`Data Source 1 Error on line ${requestResult.error.line}: ${requestResult.error.message}`);
+                    }
+                    
+                    // Parse second data source with error detection
+                    const responseResult = parseDataWithLineNumbers(responseInput);
+                    if (!responseResult.success) {
+                        highlightErrorLine('responseJson', 'responseLineNumbers', responseResult.error.line);
+                        throw new Error(`Data Source 2 Error on line ${responseResult.error.line}: ${responseResult.error.message}`);
+                    }
+                    
+                    const requestData = requestResult.data;
+                    const responseData = responseResult.data;
+                    
+                    // Flatten data structures
+                    const flatRequest = flattenData(requestData);
+                    const flatResponse = flattenData(responseData);
+                    
+                    // Group fields by their leaf names
+                    const requestByLeaf = {};
+                    const responseByLeaf = {};
+                    
+                    Object.keys(flatRequest).forEach(fullPath => {
+                        const leafName = getLeafName(fullPath);
+                        if (!requestByLeaf[leafName]) {
+                            requestByLeaf[leafName] = [];
+                        }
+                        requestByLeaf[leafName].push({ path: fullPath, value: flatRequest[fullPath] });
+                    });
+                    
+                    Object.keys(flatResponse).forEach(fullPath => {
+                        const leafName = getLeafName(fullPath);
+                        if (!responseByLeaf[leafName]) {
+                            responseByLeaf[leafName] = [];
+                        }
+                        responseByLeaf[leafName].push({ path: fullPath, value: flatResponse[fullPath] });
+                    });
+                    
+                    // Get all unique leaf names
+                    const allLeafNames = new Set([...Object.keys(requestByLeaf), ...Object.keys(responseByLeaf)]);
+                    
+                    // Perform comparison
+                    const comparisons = [];
+                    const matches = [];
+                    const differences = [];
+                    
+                    // Helper function to compare values with numeric normalization
+                    function areValuesEqual(value1, value2) {
+                        // First check exact equality
+                        if (JSON.stringify(value1) === JSON.stringify(value2)) {
+                            return true;
+                        }
+                        
+                        // Check if both are numeric strings that represent the same number
+                        if (typeof value1 === 'string' && typeof value2 === 'string') {
+                            const num1 = parseFloat(value1);
+                            const num2 = parseFloat(value2);
+                            
+                            // If both parse to valid numbers and are equal
+                            if (!isNaN(num1) && !isNaN(num2) && num1 === num2) {
+                                return true;
+                            }
+                        }
+                        
+                        // Check if one is string and other is number but represent same value
+                        if ((typeof value1 === 'string' && typeof value2 === 'number') ||
+                            (typeof value1 === 'number' && typeof value2 === 'string')) {
+                            const num1 = typeof value1 === 'string' ? parseFloat(value1) : value1;
+                            const num2 = typeof value2 === 'string' ? parseFloat(value2) : value2;
+                            
+                            if (!isNaN(num1) && !isNaN(num2) && num1 === num2) {
+                                return true;
+                            }
+                        }
+                        
+                        return false;
+                    }
+                    
+                    // Helper function to describe XML structure
+                    function getXMLStructureInfo(xmlObj) {
+                        const parts = [];
+                        
+                        if (typeof xmlObj === 'string') {
+                            parts.push('(text-only)');
+                        } else if (typeof xmlObj === 'object' && xmlObj !== null) {
+                            // Check for attributes (exclude 'value' which is always the text content)
+                            const attrs = Object.keys(xmlObj).filter(key => 
+                                key !== 'value' &&
+                                typeof xmlObj[key] === 'string' &&
+                                !Array.isArray(xmlObj[key]) &&
+                                typeof xmlObj[key] !== 'object'
+                            );
+                            
+                            if (attrs.length > 0) {
+                                const attrStrs = attrs.map(attr => `${attr}="${xmlObj[attr]}"`);
+                                parts.push(`(attrs: ${attrStrs.join(', ')})`);
+                            } else if ('value' in xmlObj && Object.keys(xmlObj).length === 1) {
+                                // Only has value field, so it's text-only
+                                parts.push('(text-only)');
+                            } else if ('value' in xmlObj) {
+                                // Has value and other properties
+                                parts.push('(text with attrs)');
+                            } else {
+                                // Complex element with child elements
+                                parts.push('(element)');
+                            }
+                        }
+                        
+                        return parts.join(' ');
+                    }
+                    
+                    // Special handling for XML element comparison
+                    function compareXMLElements(leafName, reqItems, respItems) {
+                        if (reqItems.length === 0 || respItems.length === 0) {
+                            return null;
+                        }
+                        
+                        const reqValue = reqItems[0].value;
+                        const respValue = respItems[0].value;
+                        
+                        // Handle different comparison scenarios
+                        let reqCoreValue = null;
+                        let respCoreValue = null;
+                        
+                        // Extract core values from XML structures (always check for 'value' field first)
+                        if (typeof reqValue === 'object' && reqValue !== null && 'value' in reqValue) {
+                            reqCoreValue = reqValue.value;
+                        } else if (typeof reqValue === 'string') {
+                            reqCoreValue = reqValue;
+                        }
+                        
+                        if (typeof respValue === 'object' && respValue !== null && 'value' in respValue) {
+                            respCoreValue = respValue.value;
+                        } else if (typeof respValue === 'string') {
+                            respCoreValue = respValue;
+                        }
+                        
+                        // If we found core values and they match, this is a structural match
+                        if (reqCoreValue !== null && respCoreValue !== null && reqCoreValue === respCoreValue) {
+                            // Check if the structures are different
+                            const reqStructureStr = JSON.stringify(reqValue);
+                            const respStructureStr = JSON.stringify(respValue);
+                            
+                            // If structures are different, this is a structural match
+                            if (reqStructureStr !== respStructureStr) {
+                                return {
+                                    isXMLElementMatch: true,
+                                    coreValue: reqCoreValue,
+                                    reqStructure: reqValue,
+                                    respStructure: respValue
+                                };
+                            }
+                        }
+                        
+                        return null;
+                    }
+                    
+                    allLeafNames.forEach(leafName => {
+                        const reqItems = requestByLeaf[leafName] || [];
+                        const respItems = responseByLeaf[leafName] || [];
+                        
+                        let status, statusClass, requestValue, responseValue;
+                        
+                        if (reqItems.length === 0) {
+                            // Field only exists in source 2
+                            status = '❌ MISSING IN SOURCE 1';
+                            statusClass = 'status-missing';
+                            differences.push(leafName);
+                            requestValue = '❌ MISSING';
+                            responseValue = JSON.stringify(respItems[0].value);
+                        } else if (respItems.length === 0) {
+                            // Field only exists in source 1
+                            status = '❌ MISSING IN SOURCE 2';
+                            statusClass = 'status-missing';
+                            differences.push(leafName);
+                            requestValue = JSON.stringify(reqItems[0].value);
+                            responseValue = '❌ MISSING';
+                        } else {
+                            // Check for XML element matches first
+                            const xmlMatch = compareXMLElements(leafName, reqItems, respItems);
+                            
+                            if (xmlMatch) {
+                                // XML elements with same core value but different structure
+                                status = '✅ VALUE MATCH (Structure Diff)';
+                                statusClass = 'status-xml-match';
+                                matches.push(leafName);
+                                
+                                requestValue = `"${xmlMatch.coreValue}" ${getXMLStructureInfo(xmlMatch.reqStructure)}`;
+                                responseValue = `"${xmlMatch.coreValue}" ${getXMLStructureInfo(xmlMatch.respStructure)}`;
+                        } else {
+                            // Compare values (take the first occurrence from each side)
+                            const reqValue = reqItems[0].value;
+                            const respValue = respItems[0].value;
+                            
+                                // Check if values are equal (with numeric normalization)
+                                if (areValuesEqual(reqValue, respValue)) {
+                                status = '✅ MATCH';
+                                statusClass = 'status-match';
+                                matches.push(leafName);
+                            } else {
+                                status = '🔄 DIFFERENT VALUES';
+                                statusClass = 'status-different-values';
+                                differences.push(leafName);
+                            }
+                            
+                            requestValue = JSON.stringify(reqValue);
+                            responseValue = JSON.stringify(respValue);
+                            }
+                            
+                            // Remove the "found in" path information for cleaner display
+                            // Users don't need to see the complex paths
+                        }
+                        
+                        comparisons.push({
+                            field: leafName,
+                            requestValue,
+                            responseValue,
+                            status,
+                            statusClass
+                        });
+                    });
+                    
+                    // Sort comparisons by field name
+                    comparisons.sort((a, b) => a.field.localeCompare(b.field));
+                    
+                    // Generate results HTML
+                    const totalFields = comparisons.length;
+                    const matchCount = matches.length;
+                    const diffCount = differences.length;
+                    const matchPercentage = totalFields > 0 ? ((matchCount / totalFields) * 100).toFixed(1) : 0;
+                    const diffPercentage = totalFields > 0 ? ((diffCount / totalFields) * 100).toFixed(1) : 0;
+                    
+                    let resultsHTML = `
+                        <div class="summary">
+                            <h3>📊 Comparison Summary</h3>
+                            <div class="summary-stats">
+                                <div class="stat-item">
+                                    <div class="stat-number">${totalFields}</div>
+                                    <div class="stat-label">Total Fields</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-number" style="color: #28a745">${matchCount}</div>
+                                    <div class="stat-label">Matches (${matchPercentage}%)</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-number" style="color: #dc3545">${diffCount}</div>
+                                    <div class="stat-label">Differences (${diffPercentage}%)</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <table class="comparison-table">
+                            <thead>
+                                <tr>
+                                    <th>Field Path</th>
+                                    <th>Source 1 Value</th>
+                                    <th>Source 2 Value</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    `;
+                    
+                    comparisons.forEach(comp => {
+                        const requestDisplay = comp.requestValue.length > 50 
+                            ? comp.requestValue.substring(0, 50) + '...' 
+                            : comp.requestValue;
+                        const responseDisplay = comp.responseValue.length > 50 
+                            ? comp.responseValue.substring(0, 50) + '...' 
+                            : comp.responseValue;
+                            
+                        resultsHTML += `
+                            <tr>
+                                <td class="field-path">${comp.field}</td>
+                                <td class="json-value ${comp.requestValue === '❌ MISSING' ? 'missing-value' : ''}">${requestDisplay}</td>
+                                <td class="json-value ${comp.responseValue === '❌ MISSING' ? 'missing-value' : ''}">${responseDisplay}</td>
+                                <td class="${comp.statusClass}">${comp.status}</td>
+                            </tr>
+                        `;
+                    });
+                    
+                    resultsHTML += `
+                            </tbody>
+                        </table>
+                        
+                        <div class="details-section">
+                            <div class="details-panel">
+                                <h4>✅ Matching Fields (${matchCount})</h4>
+                                <ul class="field-list">
+                    `;
+                    
+                    matches.forEach(field => {
+                        resultsHTML += `<li class="match-item">• ${field}</li>`;
+                    });
+                    
+                    resultsHTML += `
+                                </ul>
+                            </div>
+                            
+                            <div class="details-panel">
+                                <h4>❌ Different/Missing Fields (${diffCount})</h4>
+                                <ul class="field-list">
+                    `;
+                    
+                    differences.forEach(field => {
+                        resultsHTML += `<li class="diff-item">• ${field}</li>`;
+                    });
+                    
+                    resultsHTML += `
+                                </ul>
+                            </div>
+                        </div>
+                    `;
+                    
+                    resultsDiv.innerHTML = resultsHTML;
+                    
+                } catch (error) {
+                    resultsDiv.innerHTML = `
+                        <div class="error-message">
+                            <h3>❌ Error</h3>
+                            <p><strong>Error:</strong> ${error.message}</p>
+                            <p><strong>Help:</strong> Please ensure both inputs contain valid JSON, XML, CSV, or YAML data.</p>
+                        </div>
+                    `;
+                }
+            }, 500); // Small delay for better UX
+        }
+        
+        
+        // Add sample data function for testing (includes both JSON and XML examples)
+        function loadSampleData() {
+            // Cycle through different format examples: JSON, XML, YAML, CSV
+            const formatOptions = ['json', 'xml', 'yaml', 'csv'];
+            const selectedFormat = formatOptions[Math.floor(Math.random() * formatOptions.length)];
+            
+            // For now, default to YAML to test array functionality
+            const useFormat = 'yaml'; // Change this to selectedFormat to enable random selection
+            
+            if (useFormat === 'xml') {
+                const sampleRequest = `<user>
+  <user_id>123</user_id>
+  <name>Alice Johnson</name>
+  <email>alice@example.com</email>
+  <age>28</age>
+  <preferences>
+    <theme>dark</theme>
+    <notifications>true</notifications>
+  </preferences>
+  <skills>
+    <skill>Python</skill>
+    <skill>JavaScript</skill>
+    <skill>SQL</skill>
+  </skills>
+</user>`;
+                
+                const sampleResponse = `<user>
+  <user_id>123</user_id>
+  <name>Alice Johnson</name>
+  <email>alice@example.com</email>
+  <age>28</age>
+  <account_status>active</account_status>
+  <created_at>2024-01-15T09:30:00Z</created_at>
+  <last_login>2024-12-20T14:22:15Z</last_login>
+  <preferences>
+    <theme>dark</theme>
+    <notifications>true</notifications>
+    <language>en</language>
+  </preferences>
+  <skills>
+    <skill>Python</skill>
+    <skill>JavaScript</skill>
+    <skill>SQL</skill>
+    <skill>React</skill>
+  </skills>
+  <profile>
+    <bio>Software developer with 5 years experience</bio>
+    <location>San Francisco, CA</location>
+    <avatar_url>https://example.com/avatars/alice.jpg</avatar_url>
+  </profile>
+</user>`;
+                
+                document.getElementById('requestJson').value = sampleRequest;
+                document.getElementById('responseJson').value = sampleResponse;
+            } else if (useFormat === 'yaml') {
+                // Load YAML sample
+                const sampleRequest = `user_id: 123
+name: Alice Johnson
+email: alice@example.com
+age: 28
+preferences:
+  theme: dark
+  notifications: true
+skills:
+  - Python
+  - JavaScript
+  - SQL
+fruits:
+  - Apple
+  - Banana
+  - Orange`;
+                
+                const sampleResponse = `user_id: 123
+name: Alice Johnson
+email: alice@example.com
+age: 28
+account_status: active
+created_at: "2024-01-15T09:30:00Z"
+last_login: "2024-12-20T14:22:15Z"
+preferences:
+  theme: dark
+  notifications: true
+  language: en
+skills:
+  - Python
+  - JavaScript
+  - SQL
+  - React
+fruits:
+  - Apple
+  - Banana
+  - Mango
+  - Grapes
+profile:
+  bio: "Software developer with 5 years experience"
+  location: "San Francisco, CA"
+  avatar_url: "https://example.com/avatars/alice.jpg"`;
+                
+                document.getElementById('requestJson').value = sampleRequest;
+                document.getElementById('responseJson').value = sampleResponse;
+            } else if (useFormat === 'csv') {
+                // Load CSV sample
+                const sampleRequest = `user_id,name,email,age,theme
+123,Alice Johnson,alice@example.com,28,dark
+456,Bob Smith,bob@example.com,35,light`;
+                
+                const sampleResponse = `user_id,name,email,age,theme,account_status,skills
+123,Alice Johnson,alice@example.com,28,dark,active,"Python,JavaScript"
+456,Bob Smith,bob@example.com,35,light,active,"Java,Python"
+789,Carol Davis,carol@example.com,29,dark,pending,"React,CSS"`;
+                
+                document.getElementById('requestJson').value = sampleRequest;
+                document.getElementById('responseJson').value = sampleResponse;
+            } else {
+                // Load JSON sample (default)
+            const sampleRequest = `{
+  "user_id": 123,
+  "name": "Alice Johnson", 
+  "email": "alice@example.com",
+  "age": 28,
+  "preferences": {
+    "theme": "dark",
+    "notifications": true
+  },
+  "skills": ["Python", "JavaScript", "SQL"]
+}`;
+            
+            const sampleResponse = `{
+  "user_id": 123,
+  "name": "Alice Johnson",
+  "email": "alice@example.com", 
+  "age": 28,
+  "account_status": "active",
+  "created_at": "2024-01-15T09:30:00Z",
+  "last_login": "2024-12-20T14:22:15Z",
+  "preferences": {
+    "theme": "dark",
+    "notifications": true,
+    "language": "en"
+  },
+  "skills": ["Python", "JavaScript", "SQL", "React"],
+  "profile": {
+    "bio": "Software developer with 5 years experience",
+    "location": "San Francisco, CA",
+    "avatar_url": "https://example.com/avatars/alice.jpg"
+  }
+}`;
+            
+            document.getElementById('requestJson').value = sampleRequest;
+            document.getElementById('responseJson').value = sampleResponse;
+            }
+        }
+        
+        // Add keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                compareData();
+            }
+        });
+        
+        // Initialize everything when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, initializing...'); // Debug log
+            
+            // Load sample data
+            loadSampleData();
+            
+            // Initialize line numbers after a short delay to ensure textareas are populated
+            setTimeout(function() {
+                updateLineNumbers('requestJson', 'requestLineNumbers');
+                updateLineNumbers('responseJson', 'responseLineNumbers');
+                console.log('Line numbers initialized'); // Debug log
+            }, 100);
+            
+            // Add event listeners for live line number updates
+            const requestTextarea = document.getElementById('requestJson');
+            const responseTextarea = document.getElementById('responseJson');
+            
+            if (requestTextarea) {
+                requestTextarea.addEventListener('input', function() {
+                    updateLineNumbers('requestJson', 'requestLineNumbers');
+                    // Clear error highlight when user starts typing
+                    if (this.classList.contains('error')) {
+                        clearErrorHighlight('requestJson', 'requestLineNumbers');
+                    }
+                });
+                
+                // Update line numbers on paste
+                requestTextarea.addEventListener('paste', function() {
+                    setTimeout(function() {
+                        updateLineNumbers('requestJson', 'requestLineNumbers');
+                    }, 10);
+                });
+                
+                // Sync scrolling
+                requestTextarea.addEventListener('scroll', function(e) {
+                    const lineNumbers = document.getElementById('requestLineNumbers');
+                    if (lineNumbers) {
+                        lineNumbers.scrollTop = e.target.scrollTop;
+                    }
+                });
+            }
+            
+            if (responseTextarea) {
+                responseTextarea.addEventListener('input', function() {
+                    updateLineNumbers('responseJson', 'responseLineNumbers');
+                    // Clear error highlight when user starts typing
+                    if (this.classList.contains('error')) {
+                        clearErrorHighlight('responseJson', 'responseLineNumbers');
+                    }
+                });
+                
+                // Update line numbers on paste
+                responseTextarea.addEventListener('paste', function() {
+                    setTimeout(function() {
+                        updateLineNumbers('responseJson', 'responseLineNumbers');
+                    }, 10);
+                });
+                
+                // Sync scrolling
+                responseTextarea.addEventListener('scroll', function(e) {
+                    const lineNumbers = document.getElementById('responseLineNumbers');
+                    if (lineNumbers) {
+                        lineNumbers.scrollTop = e.target.scrollTop;
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
